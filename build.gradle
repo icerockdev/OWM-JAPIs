@@ -68,23 +68,6 @@ buildscript {
   }
 }
 
-//publishing {
-//  repositories.maven("https://api.bintray.com/maven/icerockdev/backend/owm-japis/;publish=1") {
-//    name = "bintray"
-//
-//    credentials {
-//      username = System.getProperty("BINTRAY_USER")
-//      password = System.getProperty("BINTRAY_KEY")
-//    }
-//  }
-//  publications {
-//    register(MavenPublication) {
-//      from components.java
-//      artifact(sourcesJar.get())
-//    }
-//  }
-//}
-
 publishing {
 
   repositories {
