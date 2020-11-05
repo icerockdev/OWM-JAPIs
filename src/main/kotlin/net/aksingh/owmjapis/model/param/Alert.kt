@@ -17,81 +17,49 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.        *
  **************************************************************************************************/
 
-apply plugin: "java"
-apply plugin: "kotlin"
-//apply plugin: "org.jetbrains.dokka"
+package net.aksingh.owmjapis.model.param
 
-apply plugin: "maven-publish"
-//apply plugin: "signing"
+import com.google.gson.GsonBuilder
+import com.google.gson.annotations.SerializedName
 
-sourceCompatibility = 1.8
+data class Alert(
+  @field:SerializedName("sender_name")
+  val senderName: String? = null,
 
-group = "com.icerockdev"
-archivesBaseName = "owm-japis"
-version = "2.5.3.1-local-12"
+  @field:SerializedName("start")
+  val start: Int? = null,
 
-repositories {
-  mavenLocal()
-  mavenCentral()
-}
+  @field:SerializedName("end")
+  val end: Int? = null,
 
-dependencies {
-//  compile "org.threeten:threetenbp:1.3.6"
+  @field:SerializedName("description")
+  val description: String? = null,
 
-  compile "com.google.code.gson:gson:2.8.5"
+  @field:SerializedName("event")
+  val event: String? = null
 
-  compile "com.squareup.retrofit2:retrofit:2.5.0"
-  compile "com.squareup.retrofit2:converter-gson:2.5.0"
+) {
 
-  compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-  compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-}
+  fun hasSenderName(): Boolean = senderName != null
+  fun hasStart(): Boolean = start != null
+  fun hasEnd(): Boolean = end != null
+  fun hasDescription(): Boolean = description != null
+  fun hasEvent(): Boolean = event != null
 
-task sourcesJar(type: Jar) {
-  classifier = "sources"
-  from sourceSets.main.allSource
-}
+  companion object Static {
+    @JvmStatic
+    fun fromJson(json: String): Alert {
+      return GsonBuilder().create().fromJson(json, Alert::class.java)
+    }
 
-artifacts {
-  sourcesJar
-}
+    @JvmStatic
+    fun toJson(pojo: Alert): String {
+      return GsonBuilder().create().toJson(pojo)
+    }
 
-buildscript {
-  ext.kotlin_version = "1.3.30"
-  ext.dokka_version = "0.9.17"
-
-  repositories {
-    jcenter()
-    mavenCentral()
-  }
-
-  dependencies {
-    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    classpath "org.jetbrains.dokka:dokka-gradle-plugin:$dokka_version"
-  }
-}
-
-//publishing {
-//  repositories.maven("https://api.bintray.com/maven/icerockdev/backend/owm-japis/;publish=1") {
-//    name = "bintray"
-//
-//    credentials {
-//      username = System.getProperty("BINTRAY_USER")
-//      password = System.getProperty("BINTRAY_KEY")
-//    }
-//  }
-//  publications {
-//    register(MavenPublication) {
-//      from components.java
-//      artifact(sourcesJar.get())
-//    }
-//  }
-//}
-
-publishing {
-  publications {
-    mavenJava(MavenPublication) {
-      from components.java
+    @JvmStatic
+    fun toJsonPretty(pojo: Alert): String {
+      return GsonBuilder().setPrettyPrinting().create().toJson(pojo)
     }
   }
 }

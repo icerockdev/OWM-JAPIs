@@ -31,6 +31,15 @@ import java.net.InetSocketAddress
 import java.net.Proxy
 import java.util.*
 
+
+enum class OneCallExcludes {
+  current,
+  minutely,
+  hourly,
+  daily,
+  alerts
+}
+
 /**
  * **Starting point for this lib.** If you're new to this API, start from this class.
  *
@@ -63,6 +72,7 @@ open class OWM {
   protected var retrofit4others: Retrofit
   protected var retrofit4pollution: Retrofit
   protected var retrofit4weather: Retrofit
+  protected var retrofit4oneCall: Retrofit
 
   protected var baseUrl: String = OWM_FREE_V25_BASE_URL
 
@@ -85,6 +95,7 @@ open class OWM {
       retrofit4others = createRetrofit4OthersInstance(proxy)
       retrofit4pollution = createRetrofit4PollutionInstance(proxy)
       retrofit4weather = createRetrofit4WeatherInstance(proxy)
+      retrofit4oneCall = createRetrofit4OneCallInstance(proxy)
     }
 
   var language: OWM.Language = OWM.Language.ENGLISH
@@ -92,6 +103,7 @@ open class OWM {
       field = value
 
       retrofit4weather = createRetrofit4WeatherInstance(proxy)
+      retrofit4oneCall = createRetrofit4OneCallInstance(proxy)
     }
 
   var proxy: Proxy = SystemTools.getSystemProxy()
@@ -102,6 +114,7 @@ open class OWM {
       retrofit4others = createRetrofit4OthersInstance(proxy)
       retrofit4pollution = createRetrofit4PollutionInstance(proxy)
       retrofit4weather = createRetrofit4WeatherInstance(proxy)
+      retrofit4oneCall = createRetrofit4OneCallInstance(proxy)
     }
 
   var unit: OWM.Unit = OWM.Unit.STANDARD
@@ -109,6 +122,7 @@ open class OWM {
       field = value
 
       retrofit4weather = createRetrofit4WeatherInstance(proxy)
+      retrofit4oneCall = createRetrofit4OneCallInstance(proxy)
     }
 
   /**
@@ -133,6 +147,7 @@ open class OWM {
     retrofit4weather = createRetrofit4WeatherInstance(proxy)
     retrofit4pollution = createRetrofit4PollutionInstance(proxy)
     retrofit4others = createRetrofit4OthersInstance(proxy)
+    retrofit4oneCall = createRetrofit4OneCallInstance(proxy)
   }
 
   /**
@@ -505,6 +520,25 @@ open class OWM {
     return airPollutionByCoords(latitude, longitude, "current")
   }
 
+  @Throws(APIException::class)
+  fun oneCall(latitude: Double, longitude: Double, excludes: List<OneCallExcludes>): OneCallWeather {
+    val api = retrofit4oneCall.create(OneCallAPI::class.java)
+
+    val apiCall = api.getOneCall(latitude, longitude, excludes.joinToString(","))
+    val apiResp = apiCall.execute()
+    var pollution = apiResp.body()
+
+    if (pollution == null) {
+      if (!apiResp.isSuccessful) {
+        throw APIException(apiResp.code(), apiResp.message())
+      }
+
+      pollution = OneCallWeather()
+    }
+
+    return pollution
+  }
+
   /**
    * Init Retrofit for getting history data from OpenWeatherMap.org
    *
@@ -521,6 +555,27 @@ open class OWM {
     val builder = Retrofit.Builder()
       .client(client)
       .baseUrl(OWMPro.OWM_PRO_V25_HISTORY_URL)
+      .addConverterFactory(GsonConverterFactory.create(gson))
+
+    return builder.build()
+  }
+
+  protected fun createRetrofit4OneCallInstance(proxy: Proxy): Retrofit {
+    val clientBuilder = OkHttpClient.Builder().proxy(proxy)
+
+    OkHttpTools.addQueryParameter(clientBuilder, "appid", apiKey)
+    OkHttpTools.addQueryParameter(clientBuilder, "lang", language.value)
+
+    if (unit != OWM.Unit.STANDARD) {
+      OkHttpTools.addQueryParameter(clientBuilder, "units", unit.value)
+    }
+
+    val client = clientBuilder.build()
+    val gson = GsonBuilder().setLenient().create()
+
+    val builder = Retrofit.Builder()
+      .client(client)
+      .baseUrl(baseUrl)
       .addConverterFactory(GsonConverterFactory.create(gson))
 
     return builder.build()
