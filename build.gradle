@@ -29,7 +29,6 @@ archivesBaseName = "owm-japis"
 version = "2.6.3.0"
 
 repositories {
-  mavenLocal()
   mavenCentral()
 }
 
@@ -42,6 +41,11 @@ dependencies {
 
   compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
   compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+}
+
+task javadocJar(type: Jar) {
+  classifier = "javadoc"
+  from javadoc
 }
 
 task sourcesJar(type: Jar) {
